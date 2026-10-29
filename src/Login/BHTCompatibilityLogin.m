@@ -2278,9 +2278,8 @@ static BOOL BHTPresentNativeLoginChallenge(
 
 @end
 
-// Compatibility Sign-in is deliberately separate from X's normal onboarding.
-// It uses the guarded X 12.9 password command and hands successful accounts
-// back to X's own account service without changing the native sign-in action.
+// Compatibility Sign-in uses X's own guarded login surfaces and leaves
+// credential collection, verification, and account handoff to X.
 static void BHTPresentCompatibilitySignInForContext(
     UIViewController* presenter,
     UIViewController* addAccountController) {
@@ -2692,12 +2691,12 @@ static void BHTPresentNativeAddAccountCompatibilitySignIn(
 
 void BHTPresentCompatibilitySignIn(
     UIViewController* presenter) {
-    BHTPresentSecureWebSessionSignIn(presenter, nil);
+    BHTPresentNativeInitialCompatibilitySignIn(presenter);
 }
 
 void BHTPresentCompatibilitySignInForAddingAccount(
     UIViewController* accountsController) {
-    BHTPresentSecureWebSessionSignIn(
+    BHTPresentNativeAddAccountCompatibilitySignIn(
         accountsController, accountsController);
 }
 
@@ -2940,7 +2939,7 @@ void BHTInstallCompatibilitySignInEntry(
 void BHTInstallCompatibilityAddAccountSignInEntry(
     UIViewController* accountsController) {
     if (!accountsController ||
-        !BHTCompatibilitySignInIsAvailable() ||
+        !BHTCompatibilityVersionIsSupported() ||
         !BHTNativeAddAccountCompletionGetterIsSupported()) {
         return;
     }
@@ -3086,10 +3085,8 @@ BHTCompatibilitySignInDiagnosticSnapshot(void) {
         NSClassFromString(@"T1AccountsViewController");
     BOOL nativeAddAccountCompletionSelectorAvailable =
         BHTNativeAddAccountCompletionGetterIsSupported();
-    BOOL secureWebSessionAvailable =
-        BHTSecureWebSessionSignInIsAvailable();
     BOOL addAccountEntryAvailable =
-        secureWebSessionAvailable &&
+        BHTCompatibilityVersionIsSupported() &&
         accountsClass &&
         [accountsClass instancesRespondToSelector:
                            @selector(viewWillAppear:)] &&
@@ -3100,7 +3097,8 @@ BHTCompatibilitySignInDiagnosticSnapshot(void) {
         @"targetAppVersion": BHTCompatibilityTargetVersion,
         @"appVersionSupported":
             @(BHTCompatibilityVersionIsSupported()),
-        @"runtimeAvailable": @(secureWebSessionAvailable),
+        @"runtimeAvailable":
+            @(BHTNativeInitialSignInSignatureIsSupported()),
         @"missingRuntimeRequirements":
             missingRequirements,
         @"legacyPasswordRuntimeAvailable":
@@ -3110,7 +3108,8 @@ BHTCompatibilitySignInDiagnosticSnapshot(void) {
         @"preLoginDiagnosticsEligible":
             @(BHTCompatibilityVersionIsSupported()),
         @"addAccountEntryAvailable":
-            @(addAccountEntryAvailable),
+            @(BHTNativeAddAccountSignInSignatureIsSupported() &&
+              addAccountEntryAvailable),
         @"nativeAddAccountCompletionSelectorAvailable":
             @(nativeAddAccountCompletionSelectorAvailable),
         @"lastStage": lastStage,
@@ -3129,32 +3128,29 @@ BHTCompatibilitySignInDiagnosticSnapshot(void) {
         @"secureWebSession":
             BHTSecureWebSessionDiagnosticSnapshot(),
         @"compatibilitySignInMode":
-            @"user_confirmed_web_session_bridge",
+            @"x_native_login_flow",
         @"nativeSignInRemainsDefault": @YES,
         @"legacyPasswordCommandIsDefault": @NO,
         @"legacyPasswordCommandReachable": @NO,
-        @"credentialEntryOwner": @"x_webview",
-        @"credentialPersistence":
-            @"device_only_keychain_and_webkit_store",
-        @"xAuthClientMetadataPolicy":
-            @"native_x_12_24_1",
+        @"credentialEntryOwner": @"x_native_login_flow",
+        @"credentialPersistence": @"x_native_account_service",
+        @"xAuthClientMetadataPolicy": @"x_native_login_flow",
         @"xAuthClientMetadataTargetVersion":
             BHTCompatibilityTargetVersion,
         @"xAuthClientMetadataOverrideInstalled": @NO,
         @"xAuthClientMetadataOverrideClaimed": @0,
         @"xAuthClientMetadataOverrideApplied": @0,
         @"xAuthClientMetadataScopeTimedOut": @0,
-        @"compatibilityRequestProfile":
-            @"secure_web_session_v1",
-        @"preflightPolicy": @"user_confirmed_x_web_sign_in",
+        @"compatibilityRequestProfile": @"x_native_login_flow",
+        @"preflightPolicy": @"x_native_login_flow",
         @"preflightMinimumDelaySeconds": @0,
         @"attestationOverridesIncluded": @NO,
         @"credentialBackupIncluded": @NO,
         @"uiMetricsPolicy": @"validated_json_else_nil",
         @"capturedMetricsUsedForAuthentication": @NO,
         @"capturesPassword": @NO,
-        @"capturesSessionCredentialAfterConfirmation": @YES,
-        @"capturesIdentifiers": @YES,
+        @"capturesSessionCredentialAfterConfirmation": @NO,
+        @"capturesIdentifiers": @NO,
         @"capturesPayloadContents": @NO,
         @"capturesFailureDescriptions": @NO,
         @"capturesFailureUserInfo": @NO,
