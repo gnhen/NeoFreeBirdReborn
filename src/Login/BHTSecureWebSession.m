@@ -469,7 +469,7 @@ static BOOL BHTWebSessionNavigationURLIsAllowed(NSURL* URL) {
 }
 
 @interface BHTSecureWebSessionViewController
-    : UIViewController <WKNavigationDelegate>
+    : UIViewController <WKNavigationDelegate, WKUIDelegate>
 @property(nonatomic, strong) WKWebView* webView;
 @property(nonatomic, strong) UILabel* statusLabel;
 @property(nonatomic, strong) UIButton* useAccountButton;
@@ -519,6 +519,7 @@ static BOOL BHTWebSessionNavigationURLIsAllowed(NSURL* URL) {
         initWithFrame:CGRectZero configuration:configuration];
     self.webView.translatesAutoresizingMaskIntoConstraints = NO;
     self.webView.navigationDelegate = self;
+    self.webView.UIDelegate = self;
     self.webView.allowsBackForwardNavigationGestures = YES;
 
     self.statusLabel = [UILabel new];
@@ -822,8 +823,7 @@ static BOOL BHTWebSessionNavigationURLIsAllowed(NSURL* URL) {
 - (void)webView:(WKWebView*)webView
     decidePolicyForNavigationAction:(WKNavigationAction*)action
                     decisionHandler:(void (^)(WKNavigationActionPolicy))handler {
-    if (!action.targetFrame.isMainFrame ||
-        BHTWebSessionNavigationURLIsAllowed(action.request.URL)) {
+    if (BHTWebSessionNavigationURLIsAllowed(action.request.URL)) {
         handler(WKNavigationActionPolicyAllow);
     } else {
         handler(WKNavigationActionPolicyCancel);
@@ -831,6 +831,23 @@ static BOOL BHTWebSessionNavigationURLIsAllowed(NSURL* URL) {
             [self showErrorKey:@"SECURE_WEB_SIGN_IN_BLOCKED_HOST"];
         }
     }
+}
+
+- (WKWebView*)webView:(WKWebView*)webView
+    createWebViewWithConfiguration:(WKWebViewConfiguration*)configuration
+               forNavigationAction:(WKNavigationAction*)action
+                    windowFeatures:(WKWindowFeatures*)windowFeatures {
+    if (!BHTWebSessionNavigationURLIsAllowed(action.request.URL)) {
+        if (!self.busy) {
+            [self showErrorKey:@"SECURE_WEB_SIGN_IN_BLOCKED_HOST"];
+        }
+        return nil;
+    }
+
+    // X's mobile login uses target=_blank for some verification steps. Keep
+    // those steps in the single visible, cookie-sharing web view.
+    [webView loadRequest:action.request];
+    return nil;
 }
 
 @end
