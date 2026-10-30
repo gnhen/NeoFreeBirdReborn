@@ -422,7 +422,7 @@ def main() -> None:
             "BHTInstallCompatibilitySignInEntry",
             "BHTInstallCompatibilityAddAccountSignInEntry",
             "BHTCompatibilitySignInDiagnosticSnapshot",
-            "user-confirmed X 12.24.1 web-session bridge",
+            "X's guarded native 12.24.1 login flow",
             "Successful accounts are registered and switched through X's account APIs",
             "BHTCompatibilityInstallWebSessionAccount",
             "BHTCompatibilityRemoveWebSessionAccount",
@@ -922,25 +922,23 @@ def main() -> None:
         "@interface BHTCompatibilityEntryTarget",
         "public compatibility login routes",
     )
-    if "BHTPresentSecureWebSessionSignIn(" not in public_login_routes:
+    if "BHTPresentNativeInitialCompatibilitySignIn(" not in public_login_routes:
         raise AssertionError(
-            "Public compatibility actions must dispatch the secure X web "
-            "session controller"
+            "Public compatibility actions must dispatch X's native login "
+            "controller"
         )
     if (
-        "BHTPresentNativeInitialCompatibilitySignIn(" in public_login_routes
-        or "BHTPresentNativeAddAccountCompatibilitySignIn("
-        in public_login_routes
+        "BHTPresentSecureWebSessionSignIn(" in public_login_routes
     ):
         raise AssertionError(
-            "Public compatibility actions must not route through X's native "
-            "JetX/Jetfuel onboarding"
+            "Public compatibility actions must not route through the "
+            "legacy web-session controller"
         )
 
     require_source_tokens(
         compatibility_add_account_entry,
         (
-            "BHTCompatibilitySignInIsAvailable()",
+            "BHTCompatibilityVersionIsSupported()",
             "BHTNativeAddAccountCompletionGetterIsSupported()",
             '@"COMPATIBILITY_SIGN_IN_ADD_ACCOUNT_ACTION"',
             '@"NeoFreeBird.CompatibilityAddAccountSignIn"',
@@ -1401,21 +1399,21 @@ def main() -> None:
             '@"nativeSignInRemainsDefault": @YES',
             '@"secureWebSession":',
             "BHTSecureWebSessionDiagnosticSnapshot()",
-            '@"user_confirmed_web_session_bridge"',
+            '@"x_native_login_flow"',
             '@"legacyPasswordCommandReachable": @NO',
-            '@"credentialEntryOwner": @"x_webview"',
-            '@"device_only_keychain_and_webkit_store"',
+            '@"credentialEntryOwner": @"x_native_login_flow"',
+            '@"x_native_account_service"',
             '@"xAuthClientMetadataPolicy":',
-            '@"native_x_12_24_1"',
+            '@"x_native_login_flow"',
             '@"xAuthClientMetadataTargetVersion":',
             '@"xAuthClientMetadataOverrideInstalled": @NO',
             '@"xAuthClientMetadataOverrideClaimed": @0',
             '@"xAuthClientMetadataOverrideApplied": @0',
             '@"xAuthClientMetadataScopeTimedOut": @0',
             '@"compatibilityRequestProfile":',
-            '@"secure_web_session_v1"',
+            '@"x_native_login_flow"',
             '@"preflightPolicy":',
-            '@"user_confirmed_x_web_sign_in"',
+            '@"x_native_login_flow"',
             '@"preflightMinimumDelaySeconds":',
             '@"attestationOverridesIncluded": @NO',
             '@"credentialBackupIncluded": @NO',
@@ -1438,8 +1436,8 @@ def main() -> None:
             '@"lastCommandFailureDomain"',
             '@"lastCommandFailureCode"',
             '@"capturesPassword": @NO',
-            '@"capturesSessionCredentialAfterConfirmation": @YES',
-            '@"capturesIdentifiers": @YES',
+            '@"capturesSessionCredentialAfterConfirmation": @NO',
+            '@"capturesIdentifiers": @NO',
             '@"capturesPayloadContents": @NO',
             '@"capturesFailureDescriptions": @NO',
             '@"capturesFailureUserInfo": @NO',
@@ -1488,7 +1486,7 @@ def main() -> None:
             '@"compatibilityPasswordSignInReachable": @NO',
             '@"secureUserConfirmedWebSessionBridgeIncluded": @YES',
             '@"sessionSecretsStoredInDeviceOnlyKeychain": @YES',
-            '@"nativeOnboardingSignInIncluded": @NO',
+            '@"nativeOnboardingSignInIncluded": @YES',
             '@"compatibilityXAuthClientMetadataIncluded": @NO',
             '@"attestationOverridesIncluded": @NO',
             '@"credentialBackupIncluded": @NO',
@@ -1639,7 +1637,7 @@ def main() -> None:
             '@"neofreebird_web_session"',
             "BHTCompatibilityInstallWebSessionAccount(",
             "BHTCompatibilityRemoveWebSessionAccount(",
-            "BHTPresentSecureWebSessionSignIn(presenter, nil);",
+            "BHTPresentNativeInitialCompatibilitySignIn(presenter);",
         ),
         "non-secret native web-session account shell",
     )

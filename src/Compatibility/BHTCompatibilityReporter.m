@@ -1829,7 +1829,7 @@ static NSURL* BHTWriteCompatibilityReportNow(
             @"compatibilityPasswordSignInReachable": @NO,
             @"secureUserConfirmedWebSessionBridgeIncluded": @YES,
             @"sessionSecretsStoredInDeviceOnlyKeychain": @YES,
-            @"nativeOnboardingSignInIncluded": @NO,
+            @"nativeOnboardingSignInIncluded": @YES,
             @"compatibilityXAuthClientMetadataIncluded": @NO,
             @"attestationOverridesIncluded": @NO,
             @"credentialBackupIncluded": @NO

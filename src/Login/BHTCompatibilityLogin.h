@@ -4,8 +4,8 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-// Reports whether the user-confirmed X 12.24.1 web-session bridge can run.
-// X owns the visible password form; NeoFreeBird never receives the password.
+// Reports whether X's guarded native 12.24.1 login flow can run.
+// X owns credential collection, verification, and account handoff.
 BOOL BHTCompatibilitySignInIsAvailable(void);
 void BHTPresentCompatibilitySignIn(
     UIViewController* _Nullable presenter);
