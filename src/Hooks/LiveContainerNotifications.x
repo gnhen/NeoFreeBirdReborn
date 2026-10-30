@@ -35,6 +35,16 @@ static BOOL BHTRunningInLiveContainer(void) {
 
 %hook UNUserNotificationCenter
 
+- (void)getNotificationSettingsWithCompletionHandler:
+    (void (^)(UNNotificationSettings* settings))completion {
+    if (!completion) {
+        return %orig;
+    }
+    %orig(^(UNNotificationSettings* settings) {
+        completion(settings);
+    });
+}
+
 - (void)requestAuthorizationWithOptions:(UNAuthorizationOptions)options
                       completionHandler:(void (^)(BOOL granted,
                                                    NSError* error))completion {
@@ -46,6 +56,14 @@ static BOOL BHTRunningInLiveContainer(void) {
 
 - (void)registerForRemoteNotifications {
     // Remote notification registration is unsupported by this host.
+}
+
+%end
+
+%hook UNNotificationSettings
+
+- (UNAuthorizationStatus)authorizationStatus {
+    return UNAuthorizationStatusDenied;
 }
 
 %end
